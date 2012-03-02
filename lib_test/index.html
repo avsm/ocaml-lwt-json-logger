@@ -52,23 +52,15 @@
 
     <div class="container">
 
-      <h1>Log Messages</h1>
       <table class="table table-condensed table-striped" id="logger">
       <thead>
-        <td class="span1">Level</td>
-        <td class="span2">Time</td>
-        <td class="span8">Message</td>
+        <tr>
+         <th class="span1">Level</td>
+         <th class="span2">Time</td>
+         <th class="span6">Message</td>
+       </tr>
       </thead>
       <tbody>
-<!--
-        <td><span class="label">Progress</span></td>
-        <td>Now</td>
-        <td>
-          <div class="progress progress-danger progress-striped active" id="progressor">
-            <div class="bar" style="width: 40%;"></div>
-          </div>
-        </td>
--->
       </tbody>
       </table>
 
@@ -105,12 +97,36 @@ $(document).ready(function(){
           if (v.level=="error") { level='<span class="label label-important">Error</span>'; }
           if (v.level=="fatal") { level='<span class="label label-important">Fatal</span>'; }
           var m = new moment(parseInt(v.date));
-            $('#logger tr:last').after(
-              "<tr><td>"+level+"</td><td>"+
-              m.format('LLL')+"</td><td>"+
-              v.data.join('<br/>')+"</td></tr>");
+          if (v.mode=="log") {
+              $('#logger tr:last').after(
+                "<tr><td>"+level+"</td><td>"+
+                m.format('LLL')+"</td><td>"+
+                v.data.join('<br/>')+"</td></tr>");
+          } else if (v.mode=="progress") {
+            var pid="progress_"+v.id;
+            /* Find an existing progress bar */
+            if ($('#'+pid).length == 0) {
+              var prcl='progress-success';
+              if (v.level=='info') { prcl = 'progress-info'; }
+              else if (v.level=='warning' || v.level=='fatal') { prcl = 'progress-danger'; }
+              $('#logger tr:last').after(
+                "<tr><td>"+level+"</td><td>"+
+                m.format('LLL')+"</td><td>"+
+                '<div class="progress '+prcl+' progress-striped active" id="'+
+                pid+'"><div class="bar" style="width:0%"></div></div>'+
+                "</td></tr>");
+            }
+            /* Update progress bar */
+            $('#'+pid+" .bar").width(v.level+'%');
+            /* Update active */
+            if (parseInt(v.level) >= 100) {
+              if ($('#'+pid).hasClass('active'))
+                $('#'+pid).removeClass('active');
+                $('#'+pid).removeClass('progress-striped');
+            }
+          }
         });
-        poll();
+          poll();
       }, dataType: "json"});
   }, 1000);
 })();

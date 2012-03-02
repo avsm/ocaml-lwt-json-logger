@@ -40,15 +40,37 @@ let make ?(address="127.0.0.1") ~droot ~port () =
 
   (* Output a list of lines at a particular section and level. *)
   let output section level lines =
-     let json =
-       `Assoc [
-         "level", `String (json_of_level level); 
-         "data", `List (List.map (fun x -> `String x) lines);
-         "date", `String (sprintf "%f" (Unix.gettimeofday () *. 1000.))
-       ]
-     in
-     log_buffer := json :: !log_buffer;
-     return ()
+    (* As a hack, any sections marked "progress_*" will result in a progress
+     * bar being logged, and a callback thread to update it.
+     *)
+    try begin
+      let progress_id = Scanf.sscanf (Lwt_log.Section.name section) "progress_%s" (fun id -> id) in
+      (* If this is a progress section, then we have a single line with the progress percentage *)
+      match lines with 
+      |[p] ->
+         let json =
+           `Assoc [
+             "mode", `String "progress";
+             "id", `String progress_id;
+             "level", `String p;
+             "date", `String (sprintf "%f" (Unix.gettimeofday () *. 1000.))
+         ] in
+         log_buffer := json :: !log_buffer;
+         return ()
+      |_ -> failwith ""
+    end with exn -> begin
+      (* If it is not a progress bar, just render it normally *)
+      let json =
+        `Assoc [
+          "mode", `String "log";
+          "level", `String (json_of_level level); 
+          "data", `List (List.map (fun x -> `String x) lines);
+          "date", `String (sprintf "%f" (Unix.gettimeofday () *. 1000.))
+        ]
+      in
+      log_buffer := json :: !log_buffer;
+      return ()
+    end
   in
   (* Callback function to pass to Cohttpd *)
   let callback id req =
@@ -66,7 +88,7 @@ let make ?(address="127.0.0.1") ~droot ~port () =
      *)
     let open Cohttp.Request in
     Printf.printf "%s %s\n%!" (Cohttp.Common.string_of_method (meth req)) (Cohttp.Types.(path req));
-    List.iter (fun (k,v) -> Printf.printf "  %s: %s\n%!" k v) (headers req);
+(*  List.iter (fun (k,v) -> Printf.printf "  %s: %s\n%!" k v) (headers req); *)
     match meth req, path req with
     |`GET, "/log.json" -> poll_log_buffer ()
     |`GET,"/" -> Cohttpd.Server.respond_file ~droot ~fname:"index.html" ()
@@ -85,4 +107,4 @@ let make ?(address="127.0.0.1") ~droot ~port () =
     return ()
   in
   Lwt_log.make ~output ~close
-  
+
