@@ -108,7 +108,7 @@ $(document).ready(function(){
             if ($('#'+pid).length == 0) {
               var prcl='progress-success';
               if (v.level=='info') { prcl = 'progress-info'; }
-              else if (v.level=='warning' || v.level=='fatal') { prcl = 'progress-danger'; }
+              else if (v.level=='warning' || v.level=="error" || v.level=='fatal') { prcl = 'progress-danger'; }
               $('#logger tr:last').after(
                 "<tr><td>"+level+"</td><td>"+
                 m.format('LLL')+"</td><td>"+
@@ -117,7 +117,7 @@ $(document).ready(function(){
                 "</td></tr>");
             }
             /* Update progress bar */
-            $('#'+pid+" .bar").width(v.level+'%');
+            $('#'+pid+" .bar").width(v.width+'%');
             /* Update active */
             if (parseInt(v.level) >= 100) {
               if ($('#'+pid).hasClass('active'))

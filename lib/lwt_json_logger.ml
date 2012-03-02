@@ -52,7 +52,8 @@ let make ?(address="127.0.0.1") ~droot ~port () =
            `Assoc [
              "mode", `String "progress";
              "id", `String progress_id;
-             "level", `String p;
+             "level", `String (json_of_level level);
+             "width", `String p;
              "date", `String (sprintf "%f" (Unix.gettimeofday () *. 1000.))
          ] in
          log_buffer := json :: !log_buffer;
