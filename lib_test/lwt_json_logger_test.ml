@@ -31,24 +31,25 @@ let log_t =
     done
   in
   (* progress bar generator *)
-  let progress_t id =
-    (* create the section *)
-    let section = Lwt_log.Section.make ("progress_" ^ id) in
-    (* Initialise it to 0 *)
-    Lwt_log.notice ~logger ~section "0" >>
-    (* Progress up to 100 in random increments *)
-    let progress = ref 0 in
-    while_lwt !progress < 100 do
-      progress := !progress + (Random.int 10);
-      Lwt_unix.sleep (Random.float 1.) >>
-      Lwt_log.notice ~logger ~section (string_of_int !progress)
-    done
+  let progress_t ~task ~level =
+    let stream, pushfn = Lwt_stream.create () in
+    let t =
+      (* Progress up to 100 in random increments *)
+      let progress = ref 0 in
+      lwt () = while_lwt !progress < 100 do
+        progress := !progress + (Random.int 10);
+        pushfn (Some (float_of_int !progress));
+        Lwt_unix.sleep (Random.float 1.)
+      done in
+      pushfn None;
+      return ()
+    in
+    Lwt_json_logger.progress ~task ~stream ~logger ~level <&> t
   in
-  let _ = progress_t "foo" in
-  let _ = Lwt_unix.sleep 3.0 >> progress_t "bar" in
-  let _ = Lwt_unix.sleep 4.0 >> progress_t "char" in
+  let _ = progress_t ~task:"foo" ~level:Lwt_log.Info in
+  let _ = Lwt_unix.sleep 3.0 >> progress_t ~task:"bar" ~level:Lwt_log.Error in
+  let _ = Lwt_unix.sleep 4.0 >> progress_t ~task:"chr" ~level:Lwt_log.Notice in
   normal_t
 
 let _ =
   Lwt_main.run log_t
-

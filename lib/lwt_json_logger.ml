@@ -89,7 +89,6 @@ let make ?(address="127.0.0.1") ~droot ~port () =
      *)
     let open Cohttp.Request in
     Printf.printf "%s %s\n%!" (Cohttp.Common.string_of_method (meth req)) (Cohttp.Types.(path req));
-(*  List.iter (fun (k,v) -> Printf.printf "  %s: %s\n%!" k v) (headers req); *)
     match meth req, path req with
     |`GET, "/log.json" -> poll_log_buffer ()
     |`GET,"/" -> Cohttpd.Server.respond_file ~droot ~fname:"index.html" ()
@@ -108,4 +107,13 @@ let make ?(address="127.0.0.1") ~droot ~port () =
     return ()
   in
   Lwt_log.make ~output ~close
+
+(* Log a progress message *)
+let progress ~task ~stream ~logger ~level =
+  (* Create a section with this id *)
+  let section = Lwt_log.Section.make ("progress_"^task) in
+  Lwt_stream.iter_s ( fun progress ->
+    let progress = if progress < 0. then 0. else (if progress > 100. then 100. else progress) in
+    Lwt_log.log ~section ~level ~logger (string_of_int (int_of_float progress))
+  ) stream
 
