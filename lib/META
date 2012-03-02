@@ -1,0 +1,10 @@
+# OASIS_START
+# DO NOT EDIT (digest: 9f3ef0b4dfc3595421d8fd79e2a8cf44)
+version = "0.1-dev"
+description = "Log Lwt messages to a nice web interface"
+requires = "lwt.syntax lwt yojson cohttpd"
+archive(byte) = "Lwt_json_logger.cma"
+archive(native) = "Lwt_json_logger.cmxa"
+exists_if = "Lwt_json_logger.cma"
+# OASIS_STOP
+
