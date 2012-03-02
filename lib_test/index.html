@@ -119,7 +119,7 @@ $(document).ready(function(){
             /* Update progress bar */
             $('#'+pid+" .bar").width(v.width+'%');
             /* Update active */
-            if (parseInt(v.level) >= 100) {
+            if (parseInt(v.width) >= 100) {
               if ($('#'+pid).hasClass('active'))
                 $('#'+pid).removeClass('active');
                 $('#'+pid).removeClass('progress-striped');
