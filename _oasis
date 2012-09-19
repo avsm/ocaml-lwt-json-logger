@@ -1,17 +1,17 @@
-OASISFormat: 0.2
+OASISFormat: 0.3
 Name:        lwt-json-logger
-Version:     0.1-dev
+Version:     0.2.0
 Synopsis:    Log Lwt messages to a nice web interface
 Authors:     Anil Madhavapeddy
-License:     LGPL-2.0 with OCaml linking exception
-Plugins:     META (0.2)
+License:     ISC
+Plugins:     META (0.3)
 BuildTools:  ocamlbuild
 
 Library Lwt_json_logger
   Path:       lib
   Findlibname: lwt-json-logger
   Modules: Lwt_json_logger
-  BuildDepends:	lwt.syntax, lwt, yojson, cohttpd
+  BuildDepends:	lwt.syntax, lwt, yojson, cohttp.lwt ( >= 0.9.1)
 
 Executable Lwt_json_logger_test
   Path: lib_test
@@ -19,10 +19,6 @@ Executable Lwt_json_logger_test
   Custom: true
   Install: false
   BuildDepends: lwt-json-logger
-
-Flag tests
-  Description:        Build and run tests
-  Default:            true
 
 Test lwt_json_logger_test
   Run$:               flag(tests)

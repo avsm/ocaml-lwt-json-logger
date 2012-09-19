@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 3f4dcf59797df58eafd12152db9b2bec)
+# DO NOT EDIT (digest: be2ab1c68f3e54d0e06dff2cdc36a993)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -14,22 +14,22 @@
 "_darcs": -traverse
 "_darcs": not_hygienic
 # Library Lwt_json_logger
-"lib": include
-<lib/*.ml{,i}>: pkg_yojson
+"lib/Lwt_json_logger.cmxs": use_Lwt_json_logger
 <lib/*.ml{,i}>: pkg_lwt.syntax
 <lib/*.ml{,i}>: pkg_lwt
-<lib/*.ml{,i}>: pkg_cohttpd
+<lib/*.ml{,i}>: pkg_yojson
+<lib/*.ml{,i}>: pkg_cohttp.lwt
 # Executable Lwt_json_logger_test
 "lib_test/lwt_json_logger_test.byte": use_Lwt_json_logger
-"lib_test/lwt_json_logger_test.byte": pkg_yojson
 "lib_test/lwt_json_logger_test.byte": pkg_lwt.syntax
 "lib_test/lwt_json_logger_test.byte": pkg_lwt
-"lib_test/lwt_json_logger_test.byte": pkg_cohttpd
+"lib_test/lwt_json_logger_test.byte": pkg_yojson
+"lib_test/lwt_json_logger_test.byte": pkg_cohttp.lwt
 <lib_test/*.ml{,i}>: use_Lwt_json_logger
-<lib_test/*.ml{,i}>: pkg_yojson
 <lib_test/*.ml{,i}>: pkg_lwt.syntax
 <lib_test/*.ml{,i}>: pkg_lwt
-<lib_test/*.ml{,i}>: pkg_cohttpd
+<lib_test/*.ml{,i}>: pkg_yojson
+<lib_test/*.ml{,i}>: pkg_cohttp.lwt
 "lib_test/lwt_json_logger_test.byte": custom
 # OASIS_STOP
 <lib/*>: syntax_camlp4o,pkg_lwt.syntax
