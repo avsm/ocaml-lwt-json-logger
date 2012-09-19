@@ -74,31 +74,34 @@ let make ?(address="127.0.0.1") ~droot ~port () =
     end
   in
   (* Callback function to pass to Cohttpd *)
-  let callback id req =
+  let callback id ?body req =
+    let module C = Cohttp in
+    let module CLS = Cohttp_lwt_unix.Server in
+    let module CLR = Cohttp_lwt_unix.Request in
     (* Retrieve the latest log buffer and return it as JSON array *)
     let poll_log_buffer () =
       let json = `List (List.rev !log_buffer) in
       log_buffer := [];
       let body = Yojson.Basic.to_string ~std:true json in
-      Cohttpd.Server.respond ~body ()
+      CLS.respond_string ~status:`OK ~body ()
     in
     (* Just assume we control the whole HTTP server for now, which we do.
      * The Bootstrap files need to be in ~droot.
      * XXX TODO: close the horrible security hole with path traversal
      * as ocaml-uri needs a normalize path function, see ocaml-uri issue #3
      *)
-    let open Cohttp.Request in
-    Printf.printf "%s %s\n%!" (Cohttp.Common.string_of_method (meth req)) (Cohttp.Types.(path req));
-    match meth req, path req with
+    Printf.printf "%s %s\n%!" (C.Code.string_of_method (CLR.meth req)) (CLR.path req);
+    match CLR.meth req, CLR.path req with
     |`GET, "/log.json" -> poll_log_buffer ()
-    |`GET,"/" -> Cohttpd.Server.respond_file ~droot ~fname:"index.html" ()
-    |`GET,path -> Cohttpd.Server.respond_file ~droot ~fname:path ()
-    |_ -> Cohttpd.Server.respond_error ()
+    |`GET,"/" -> CLS.respond_file ~docroot:droot ~fname:"index.html" ()
+    |`GET,path -> CLS.respond_file ~docroot:droot ~fname:path ()
+    |_ -> CLS.respond_not_found ()
   in
   (* Cohttpd server thread *)
   let server_t = 
-    let spec = Cohttpd.Server.({ default_spec with callback; port; address }) in
-    Cohttpd.Server.main spec
+    let conn_closed _ _ = () in
+    let config = { Cohttp_lwt_unix.Server.callback; conn_closed } in
+    Cohttp_lwt_unix.server "0.0.0.0" 8080 config
   in
   (* Logger close function will shut down the server_t http thread *)
   let close logger =
