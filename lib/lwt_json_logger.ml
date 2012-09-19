@@ -91,10 +91,11 @@ let make ?(address="127.0.0.1") ~droot ~port () =
      * as ocaml-uri needs a normalize path function, see ocaml-uri issue #3
      *)
     Printf.printf "%s %s\n%!" (C.Code.string_of_method (CLR.meth req)) (CLR.path req);
+    let fname = CLS.resolve_file ~docroot:droot ~uri:(CLR.uri req) in
     match CLR.meth req, CLR.path req with
     |`GET, "/log.json" -> poll_log_buffer ()
-    |`GET,"/" -> CLS.respond_file ~docroot:droot ~fname:"index.html" ()
-    |`GET,path -> CLS.respond_file ~docroot:droot ~fname:path ()
+    |`GET,"/" -> CLS.respond_file ~fname:(Filename.concat droot "index.html") ()
+    |`GET,path -> CLS.respond_file  ~fname ()
     |_ -> CLS.respond_not_found ()
   in
   (* Cohttpd server thread *)
