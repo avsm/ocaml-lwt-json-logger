@@ -22,6 +22,14 @@ Executable Lwt_json_logger_test
   Install: false
   BuildDepends: lwt-json-logger
 
+Document Lwt_json_logger
+  Title:                Lwt_json_logger docs
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  Install:              true
+  XOCamlbuildPath:      lib
+  XOCamlbuildLibraries: lwt-json-logger
+
 Test lwt_json_logger_test
   Run$:               flag(tests)
   Command:            $Lwt_json_logger_test
