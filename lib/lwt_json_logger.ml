@@ -28,11 +28,10 @@ let json_of_level =
   |Fatal -> "fatal"
 
 (* Construct a Lwt_json_log instance.
- * @param droot Document root of the web pages.
  * @param port TCP port to listen for HTTP requests on.
  * @param address IP address to bind to (default: 127.0.0.1)
  *)
-let make ?(address="127.0.0.1") ~droot ~port () =
+let make ?(address="127.0.0.1") ~port () =
   (* Buffer up the log messages until the client polls again.
    * TODO There is currently no limit on the size of this buffer. 
    *)
@@ -76,6 +75,7 @@ let make ?(address="127.0.0.1") ~droot ~port () =
   (* Callback function to pass to Cohttpd *)
   let callback id ?body req =
     let module C = Cohttp in
+    let module CB = Cohttp_lwt_unix.Body in
     let module CLS = Cohttp_lwt_unix.Server in
     let module CLR = Cohttp_lwt_unix.Request in
     (* Retrieve the latest log buffer and return it as JSON array *)
@@ -85,17 +85,18 @@ let make ?(address="127.0.0.1") ~droot ~port () =
       let body = Yojson.Basic.to_string ~std:true json in
       CLS.respond_string ~status:`OK ~body ()
     in
-    (* Just assume we control the whole HTTP server for now, which we do.
-     * The Bootstrap files need to be in ~droot.
-     * XXX TODO: close the horrible security hole with path traversal
-     * as ocaml-uri needs a normalize path function, see ocaml-uri issue #3
-     *)
+    (* Just assume we control the whole HTTP server for now, which we do.  *)
     Printf.printf "%s %s\n%!" (C.Code.string_of_method (CLR.meth req)) (CLR.path req);
-    let fname = CLS.resolve_file ~docroot:droot ~uri:(CLR.uri req) in
     match CLR.meth req, CLR.path req with
     |`GET, "/log.json" -> poll_log_buffer ()
-    |`GET,"/" -> CLS.respond_file ~fname:(Filename.concat droot "index.html") ()
-    |`GET,path -> CLS.respond_file  ~fname ()
+    |`GET,path -> begin
+       let path = match path with |""|"/" -> "/index.html" |_ -> path in
+       match_lwt Lwt_json_logger_files.read path with
+       |None -> CLS.respond_not_found ()
+       |Some stream ->
+         let body = CB.body_of_stream stream in
+         CLS.respond ~status:`OK ~body ()
+    end   
     |_ -> CLS.respond_not_found ()
   in
   (* Cohttpd server thread *)

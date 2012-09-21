@@ -17,10 +17,9 @@
 (** 
   * Make a JSON logger and HTTP server to serve up the pages.
   * @param address The IP address to listen on (default 127.0.0.1)
-  * @param droot The document root of the static web pages
   * @param port HTTP TCP port to listen on
   *)
-val make : ?address:string -> droot:string -> port:int -> unit -> Lwt_log.logger
+val make : ?address:string -> port:int -> unit -> Lwt_log.logger
 
 (**
   * Log a progress bar to the HTTP interface. Takes a "task" to identify

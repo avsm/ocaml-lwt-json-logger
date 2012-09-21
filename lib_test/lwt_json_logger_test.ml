@@ -17,7 +17,7 @@
 open Lwt
 
 (* Generate JSON log messages *)
-let logger = Lwt_json_logger.make ~droot:"lib_test/" ~port:8080 ()
+let logger = Lwt_json_logger.make ~port:8080 ()
 
 let log_t = 
   let normal_t =
